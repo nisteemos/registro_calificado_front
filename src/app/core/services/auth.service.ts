@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+} from '@angular/common/http';
 import { Observable, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { Auth, AuthResult } from '../../interfaces/auth';
@@ -8,7 +12,7 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   path: string = environment.apiUrlBase + '/users/login';
@@ -31,6 +35,7 @@ export class AuthService {
   logout(): void {
     this.isLoggedInVar = false;
     this.localStorageService.clear();
+    this.router.navigate(['/login']);
   }
 
   saveToLocalStorage(token: string, value: string) {
@@ -41,26 +46,34 @@ export class AuthService {
     return this.localStorageService.getItem(token);
   }
 
-  private checkToken(): void {
+  public checkToken(): void {
     const token = this.retrieveFromLocalStorage('token');
-    if (token) {
-      this.isLoggedInVar = true;
-    } else {
-      this.isLoggedInVar = false;
-    }
+    this.isLoggedInVar = !!token;
   }
 
   public enviarDatos(datos: Auth): Observable<any> {
     return this.http.post<any>(this.path, datos).pipe(
-      tap(response => {
-        if (response.status == 200) {
+      tap((response) => {
+        if (response.status === 200) {
           this.isLoggedInVar = true;
           this.saveToLocalStorage('token', response.data.token);
           Swal.fire({
             icon: 'success',
             title: 'Login Successful',
-            text: response.message
+            text: response.message,
           });
+          this.localStorageService.setItem(
+            'emailDataLogin',
+            response.data.user.email
+          );
+          this.localStorageService.setItem(
+            'roleDataLogin',
+            response.data.user.role
+          );
+          this.localStorageService.setItem(
+            'fullnameDataLogin',
+            response.data.user.fullname
+          );
           this.router.navigateByUrl('/dashboard');
         }
       }),
@@ -72,7 +85,7 @@ export class AuthService {
         Swal.fire({
           icon: 'error',
           title: 'Login Failed',
-          text: errorMessage
+          text: errorMessage,
         });
         throw error;
       })

@@ -4,6 +4,13 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
+    path: '',
+    loadComponent: () =>
+      import('./index/index.component').then(
+        (m) => m.IndexComponent
+      )
+  },
+  {
     path: 'login',
     loadChildren: () => import('./login/routes')
   },
@@ -19,9 +26,4 @@ export const routes: Routes = [
         (m) => m.PageNotFoundComponent
       ),
   },
-  /*{
-    path: 'pruebaHolaMundo',
-    loadChildren: () =>
-      import('./hola-mundo/hola-mundo.component') as Promise<ItemsModule>,
-  },*/
 ];
